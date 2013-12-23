@@ -14,23 +14,23 @@ namespace Archiver
         {
             EnsureDirectories();
 
-            foreach (var pair in Config.SourceArchivePairs)
+            foreach (var pair in Config.ArchiveJobs)
             {
                 ArchiveFiles(pair);
             }
         }
 
-        public static void ArchiveFiles(SourceArchivePair pair)
+        public static void ArchiveFiles(ArchiveJob job)
         {
-            foreach (var file in Directory.EnumerateFiles(pair.SourcePath)
+            foreach (var file in Directory.EnumerateFiles(job.SourcePath, job.Filter)
                 .Select(file => new FileInfo(file))
                 .Where(file => file.CreationTime <= DateTime.Now.Date.AddDays(-7)))
             {
                 var targetDirectory = file.CreationTime.ToString("yyyyMM");
-                CreateIfAbsent(Path.Combine(pair.ArchivePath, targetDirectory));
+                CreateIfAbsent(Path.Combine(job.ArchivePath, targetDirectory));
 
                 var targetPath = Path.Combine(
-                    pair.ArchivePath,
+                    job.ArchivePath,
                     targetDirectory,
                     file.Name);
 
@@ -41,8 +41,8 @@ namespace Archiver
                 catch (Exception e)
                 {
                     Console.WriteLine("Failed to move file: \nSource: {0} \nArchive: {1} \nFile: {2}",
-                        pair.SourcePath,
-                        pair.ArchivePath,
+                        job.SourcePath,
+                        job.ArchivePath,
                         file);
                     Console.WriteLine(e.Message);
                 }
@@ -51,7 +51,7 @@ namespace Archiver
 
         public static void EnsureDirectories()
         {
-            foreach (var pair in Config.SourceArchivePairs)
+            foreach (var pair in Config.ArchiveJobs)
             {
                 if (!Directory.Exists(pair.SourcePath))
                 {

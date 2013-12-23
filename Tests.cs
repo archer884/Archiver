@@ -13,16 +13,16 @@ namespace Archiver
         [TestMethod]
         public void test_001_ConfigurationHasStuffInIt()
         {
-            Assert.IsTrue(ConfigurationService.Configuration.SourceArchivePairs.Count > 0);
+            Assert.IsTrue(ConfigurationService.Configuration.ArchiveJobs.Count > 0);
         }
 
-        /// <summary>
-        /// Obviously this test won't work unless you set the current year/month as the target.
-        /// </summary>
         [TestMethod]
-        public void test_002_YearMonthCombo()
+        public void test_002_FilterConfiguration()
         {
-            Assert.IsTrue(DateTime.Now.ToString("yyyyMM") == "201312");
+            Assert.IsTrue(ConfigurationService.Configuration.ArchiveJobs
+                .All(job => 
+                    job.Filter == null 
+                    || !string.IsNullOrWhiteSpace(job.Filter)));
         }
     }
 }

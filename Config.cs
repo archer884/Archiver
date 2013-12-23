@@ -28,7 +28,7 @@ namespace Archiver
         {
             get
             {
-                return _config 
+                return _config
                     ?? (_config = (ArchiverConfig)ConfigurationManager.GetSection("archiverConfig"))
                     ?? (_config = new ArchiverConfig());
             }
@@ -37,30 +37,51 @@ namespace Archiver
 
     public class ArchiverConfig
     {
-        public IList<SourceArchivePair> SourceArchivePairs { get; set; }
+        public IList<ArchiveJob> ArchiveJobs { get; set; }
 
         public ArchiverConfig()
         {
-            SourceArchivePairs = new List<SourceArchivePair>();
+            ArchiveJobs = new List<ArchiveJob>();
         }
 
         public ArchiverConfig(XmlNode section)
             : this()
         {
-            foreach (var pairNode in section.SelectNodes("path").Cast<XmlNode>())
+            foreach (var pairNode in section.SelectNodes("archiveJob").Cast<XmlNode>())
             {
-                SourceArchivePairs.Add(new SourceArchivePair()
+                try
                 {
-                    SourcePath = pairNode.Attributes["source"].Value,
-                    ArchivePath = pairNode.Attributes["archive"].Value,
-                });
+                    ArchiveJobs.Add(new ArchiveJob()
+                    {
+                        SourcePath = pairNode.Attributes["source"].Value,
+                        ArchivePath = pairNode.Attributes["archive"].Value,
+                        Filter = GetValueOrDefault(pairNode, "filter", null),
+                    });
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        public string GetValueOrDefault(XmlNode node, string attributeName, string defaultData)
+        {
+            try
+            {
+                return node.Attributes[attributeName].Value;
+            }
+            catch (Exception)
+            {
+                return defaultData;
             }
         }
     }
 
-    public class SourceArchivePair
+    public class ArchiveJob
     {
         public string SourcePath { get; set; }
         public string ArchivePath { get; set; }
+        public string Filter { get; set; }
     }
 }
